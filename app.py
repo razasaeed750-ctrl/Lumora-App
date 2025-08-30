@@ -20,37 +20,15 @@ SECTIONS_WEIGHT = 20
 st.markdown("""
 <style>
 :root { --c1:#6a11cb; --c2:#2575fc; --glass: rgba(255,255,255,0.7); }
-.stApp {
-  background: radial-gradient(1200px 600px at 20% -10%, #ffe6ff 10%, transparent 60%),
-              radial-gradient(1200px 700px at 110% 10%, #e9f2ff 10%, transparent 60%),
-              linear-gradient(135deg, #fef6ff, #f4f9ff);
-}
-.hero {
-  background: linear-gradient(135deg, var(--c1), var(--c2));
-  border-radius: 24px; padding: 42px; color: #fff; text-align:center;
-  box-shadow: 0 18px 40px rgba(37,117,252,.25);
-}
+.stApp { background: radial-gradient(1200px 600px at 20% -10%, #ffe6ff 10%, transparent 60%), radial-gradient(1200px 700px at 110% 10%, #e9f2ff 10%, transparent 60%), linear-gradient(135deg, #fef6ff, #f4f9ff); }
+.hero { background: linear-gradient(135deg, var(--c1), var(--c2)); border-radius: 24px; padding: 42px; color: #fff; text-align:center; box-shadow: 0 18px 40px rgba(37,117,252,.25); }
 .hero h1 { font-size: 52px; font-weight: 900; margin: 0; letter-spacing: .4px;}
 .hero p { font-size: 18px; opacity: .95; margin: 10px 0 0 0; }
-.hero .cta {
-  display:inline-block; margin-top: 18px; padding: 14px 26px; border-radius: 999px;
-  background:#fff; color:#1e3264; text-decoration:none; font-weight:800;
-}
-.badge {
-  display:inline-flex; align-items:center; gap:.5rem; background:var(--glass); backdrop-filter: blur(8px);
-  padding: 8px 14px; border-radius: 999px; font-weight:700; color:#1e3264; box-shadow: 0 2px 10px rgba(0,0,0,.06);
-}
-.card {
-  background: var(--glass); backdrop-filter: blur(8px); border-radius: 18px; padding: 18px 18px;
-  box-shadow: 0 8px 24px rgba(0,0,0,.08);
-}
-.chip {
-  display:inline-block; margin: 6px 6px 0 0; padding: 6px 10px; border-radius: 999px; font-size: 13px;
-  background: #eef3ff; color:#1e3a8a; border:1px solid #dbe6ff;
-}
-.kpi {
-  background: #fff; border-radius: 16px; padding: 14px; box-shadow: 0 10px 22px rgba(0,0,0,.07); text-align:center;
-}
+.hero .cta { display:inline-block; margin-top: 18px; padding: 14px 26px; border-radius: 999px; background:#fff; color:#1e3264; text-decoration:none; font-weight:800; }
+.badge { display:inline-flex; align-items:center; gap:.5rem; background:var(--glass); backdrop-filter: blur(8px); padding: 8px 14px; border-radius: 999px; font-weight:700; color:#1e3264; box-shadow: 0 2px 10px rgba(0,0,0,.06); }
+.card { background: var(--glass); backdrop-filter: blur(8px); border-radius: 18px; padding: 18px 18px; box-shadow: 0 8px 24px rgba(0,0,0,.08); }
+.chip { display:inline-block; margin: 6px 6px 0 0; padding: 6px 10px; border-radius: 999px; font-size: 13px; background: #eef3ff; color:#1e3a8a; border:1px solid #dbe6ff; }
+.kpi { background: #fff; border-radius: 16px; padding: 14px; box-shadow: 0 10px 22px rgba(0,0,0,.07); text-align:center; }
 .kpi h3 { margin: 0; font-size: 14px; color:#57606a; font-weight:700; }
 .kpi div { font-size: 26px; font-weight: 900; color:#1f2937; }
 .section-title { font-weight: 900; font-size: 22px; color:#1e293b; margin-bottom: 6px; }
@@ -70,8 +48,7 @@ def _read_docx(path_or_file)->str:
         path = path_or_file
     doc = Document(path)
     text = "\n".join(p.text for p in doc.paragraphs)
-    try:
-        if 'tmp' in locals(): os.unlink(tmp.name)
+    try: os.unlink(tmp.name)
     except: pass
     return text
 
@@ -82,22 +59,21 @@ def _read_pdf(path_or_file)->str:
     else:
         path = path_or_file
     text = extract_text_from_pdf(path) or ""
-    try:
-        if 'tmp' in locals(): os.unlink(tmp.name)
+    try: os.unlink(tmp.name)
     except: pass
     return text
 
 def extract_plain_text(uploaded_file)->str:
     name = uploaded_file.name.lower()
-    if name.endswith(".pdf"):   return _read_pdf(uploaded_file)
-    if name.endswith(".docx"):  return _read_docx(uploaded_file)
+    if name.endswith(".pdf"): return _read_pdf(uploaded_file)
+    if name.endswith(".docx"): return _read_docx(uploaded_file)
     return ""
 
 def tokenize(text:str):
     return re.findall(r"\b[a-zA-Z0-9\+#\.\-\_]{2,}\b", text.lower())
 
 def top_keywords_from_jd(jd_text, n=50):
-    toks = tokenize(jd_text); from collections import Counter
+    toks = tokenize(jd_text)
     c = Counter(toks)
     stop = {"the","and","for","with","that","this","from","your","you","are","a","an","to","in","on","of","or"}
     cand = [(t, c[t]) for t in c if t not in stop and not t.isdigit()]
@@ -135,7 +111,7 @@ def score_cv(cv_text:str, jd_text:str|None=None, top_k:int=30):
 
 # ---- Document conversion helpers ----
 def pdf_to_docx_bytes(pdf_file)->bytes:
-    text = _read_pdf(pdf_file)  # plain text extraction
+    text = _read_pdf(pdf_file)
     doc = Document()
     doc.add_heading('Converted from PDF (text-only)', level=1)
     for line in text.splitlines():
@@ -148,7 +124,6 @@ def docx_to_pdf_bytes(docx_file)->bytes:
     pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
     pdf.set_font("Arial", size=12)
-    # Basic Latin chars best supported; for other scripts embed TTF font with add_font().
     for line in text.splitlines():
         pdf.multi_cell(0, 8, txt=line)
     out = pdf.output(dest="S").encode("latin-1", errors="ignore")
@@ -186,126 +161,48 @@ elif page == "📄 Resume Analyzer":
     left, right = st.columns([1.7,1.3])
     with left:
         cv_file = st.file_uploader("📂 Upload CV (PDF or DOCX)", type=["pdf","docx"])
-        jd = st.text_area("✍️ Paste Job Description / keywords (optional)", height=130,
-                          placeholder="Paste the JD here to match keywords more precisely …")
+        jd = st.text_area("✍️ Paste Job Description / keywords (optional)", height=130, placeholder="Paste the JD here …")
         topk = st.slider("Top K keywords from JD", 5, 60, 30)
         go_btn = st.button("🚀 Analyze CV", type="primary", use_container_width=True)
     with right:
         st.markdown("<div class='card'><b>Tips</b><br>• Use multiple keyword forms (Python, Python3, Django)"
-                    "<br>• Add sections: Experience, Education, Skills<br>• Prefer PDF/DOCX with selectable text</div>",
-                    unsafe_allow_html=True)
+                    "<br>• Add sections: Experience, Education, Skills<br>• Include contact info (email/phone)</div>", unsafe_allow_html=True)
 
-    if go_btn:
-        if not cv_file:
-            st.error("Please upload a CV file first.")
-        else:
-            cv_file.seek(0, io.SEEK_END); size_mb = cv_file.tell()/(1024*1024); cv_file.seek(0)
-            if size_mb > MAX_FILE_SIZE_MB:
-                st.error(f"File too large ({size_mb:.1f} MB). Max {MAX_FILE_SIZE_MB} MB.")
-            elif not _ext_ok(cv_file.name):
-                st.error("Only PDF or DOCX files are supported.")
-            else:
-                with st.spinner("Extracting and analyzing…"):
-                    text = extract_plain_text(cv_file)
-                    if not text.strip():
-                        st.warning("No extractable text found (scanned image?). Try an OCR’d PDF.")
-                    res = score_cv(text, jd_text=jd if jd.strip() else None, top_k=topk)
+    if go_btn and cv_file:
+        text = extract_plain_text(cv_file)
+        res = score_cv(text, jd_text=jd, top_k=topk)
+        st.metric("✅ CV Score", res["score"])
+        st.write(f"**Matched Keywords ({res['kw_count']}/{res['kw_total']}):** {', '.join(res['matched'])}")
+        st.write(f"**Has Contact Info:** {res['has_contact']}")
+        st.write(f"**Has Key Sections:** {res['has_sections']}")
+        st.write(f"**Word Count:** {res['word_count']}")
 
-                # Gauge (Plotly)
-                fig = go.Figure(go.Indicator(
-                    mode="gauge+number",
-                    value=res["score"],
-                    number={'suffix': " / 100", 'font': {'size': 36}},
-                    gauge={'axis': {'range': [0, 100]},
-                           'bar': {'color': "#2575fc"},
-                           'steps': [
-                               {'range': [0, 50], 'color': "#ffe5e5"},
-                               {'range': [50, 75], 'color': "#fff4cc"},
-                               {'range': [75, 100], 'color': "#e5ffe9"}]},
-                    title={'text': "ATS Score", 'font': {'size': 20}}
-                ))
-                st.plotly_chart(fig, use_container_width=True)
-
-                # KPI Row
-                k1,k2,k3,k4 = st.columns(4)
-                k1.markdown(f"<div class='kpi'><h3>Keywords</h3><div>{res['kw_count']} / {res['kw_total']}</div></div>", unsafe_allow_html=True)
-                k2.markdown(f"<div class='kpi'><h3>Contact</h3><div>{'Yes' if res['has_contact'] else 'No'}</div></div>", unsafe_allow_html=True)
-                k3.markdown(f"<div class='kpi'><h3>Sections</h3><div>{'OK' if res['has_sections'] else 'Missing'}</div></div>", unsafe_allow_html=True)
-                k4.markdown(f"<div class='kpi'><h3>Words</h3><div>{res['word_count']}</div></div>", unsafe_allow_html=True)
-
-                st.write("")
-                st.markdown("#### ✅ Matched Keywords")
-                if res["matched"]:
-                    st.markdown("".join([f"<span class='chip'>{t}</span>" for t in res["matched"]]), unsafe_allow_html=True)
-                else:
-                    st.caption("No matches found yet — tailor your CV to the JD keywords.")
-
-                st.write(""); st.markdown("#### ✨ Suggestions")
-                suggestions = []
-                if not res["has_contact"]: suggestions.append("Add **email** and **phone** at the top.")
-                if not res["has_sections"]: suggestions.append("Include **Experience**, **Education**, and **Skills** sections.")
-                if res["word_count"] < 150: suggestions.append("Add more **bullet points** with **metrics** and outcomes.")
-                if res["kw_count"] == 0: suggestions.append("Mirror **keywords** from the JD naturally in your CV.")
-                if suggestions:
-                    st.markdown("<div class='card'>" + "<br>".join("• " + s for s in suggestions) + "</div>", unsafe_allow_html=True)
-                else:
-                    st.success("Looks solid! Fine-tune phrasing and quantify achievements.")
-
-                st.download_button("⬇️ Download Extracted Text", text.encode("utf-8"),
-                                   file_name="cv_extracted.txt", mime="text/plain", use_container_width=True)
-                st.toast("Analysis complete!", icon="✅")
+        # Keyword bar chart
+        fig = go.Figure([go.Bar(x=res['matched'], y=[1]*len(res['matched']), text=res['matched'])])
+        fig.update_layout(title="Matched Keywords", xaxis_title="Keyword", yaxis_title="Count", showlegend=False)
+        st.plotly_chart(fig, use_container_width=True)
 
 # ---------------- DOCUMENT CONVERTER ----------------
 elif page == "🔄 Document Converter":
     st.markdown("<h2 class='section-title'>🔄 Document Converter</h2>", unsafe_allow_html=True)
-    tab1, tab2 = st.tabs(["📄 PDF → Word (.docx)", "📝 Word (.docx) → PDF"])
-
-    with tab1:
-        up_pdf = st.file_uploader("Upload PDF", type=["pdf"], key="pdf2docx")
-        if st.button("Convert to Word (.docx)", use_container_width=True, key="b1"):
-            if not up_pdf:
-                st.error("Please upload a PDF.")
-            else:
-                up_pdf.seek(0, io.SEEK_END); size_mb = up_pdf.tell()/(1024*1024); up_pdf.seek(0)
-                if size_mb > MAX_FILE_SIZE_MB:
-                    st.error(f"File too large ({size_mb:.1f} MB). Max {MAX_FILE_SIZE_MB} MB.")
-                else:
-                    with st.spinner("Converting…"):
-                        docx_bytes = pdf_to_docx_bytes(up_pdf)  # text-only (no original layout)
-                    st.success("Done! Download your Word file below.")
-                    st.download_button("⬇️ Download .docx",
-                        data=docx_bytes, file_name="converted_from_pdf.docx",
-                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                        use_container_width=True)
-
-    with tab2:
-        up_docx = st.file_uploader("Upload Word (.docx)", type=["docx"], key="docx2pdf")
-        if st.button("Convert to PDF", use_container_width=True, key="b2"):
-            if not up_docx:
-                st.error("Please upload a DOCX.")
-            else:
-                up_docx.seek(0, io.SEEK_END); size_mb = up_docx.tell()/(1024*1024); up_docx.seek(0)
-                if size_mb > MAX_FILE_SIZE_MB:
-                    st.error(f"File too large ({size_mb:.1f} MB). Max {MAX_FILE_SIZE_MB} MB.")
-                else:
-                    with st.spinner("Converting…"):
-                        pdf_bytes = docx_to_pdf_bytes(up_docx)  # simple text PDF
-                    st.success("Done! Download your PDF below.")
-                    st.download_button("⬇️ Download .pdf",
-                        data=pdf_bytes, file_name="converted_from_docx.pdf",
-                        mime="application/pdf", use_container_width=True)
-
-    st.caption("Note: Conversions here are **text-first** (not exact visual layout). For pixel-perfect conversions use a desktop tool or paid API.")
+    st.write("Convert PDF ↔ Word in seconds")
+    conv_file = st.file_uploader("Upload file (PDF/DOCX)", type=["pdf","docx"])
+    if conv_file:
+        ext = conv_file.name.split(".")[-1].lower()
+        if ext=="pdf":
+            out_bytes = pdf_to_docx_bytes(conv_file)
+            st.download_button("📥 Download Word file", data=out_bytes, file_name="converted.docx", mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+        elif ext=="docx":
+            out_bytes = docx_to_pdf_bytes(conv_file)
+            st.download_button("📥 Download PDF file", data=out_bytes, file_name="converted.pdf", mime="application/pdf")
 
 # ---------------- ABOUT ----------------
-else:
+elif page == "ℹ️ About":
     st.markdown("<h2 class='section-title'>ℹ️ About Lumora</h2>", unsafe_allow_html=True)
     st.write("""
-**Lumora** helps you:
-- Analyze CVs with **ATS-style scoring**
-- Get **instant suggestions** to improve
-- Convert between **PDF** and **Word** quickly
-
-Built with Streamlit • pdfminer.six • python-docx • fpdf2 • Plotly.
+    Lumora is a lightweight **CV scoring & document conversion tool** built with Streamlit.
+    • Score resumes using keywords and section presence.
+    • Convert PDF ↔ Word instantly.
+    • No backend needed; runs fully in the browser.
     """)
-    st.write("— Made for demos, portfolios, and Fiverr gigs ✨")
+    st.info("v1.0 • Made with ❤️")
